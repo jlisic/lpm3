@@ -15,12 +15,12 @@ lpm3 <- function(
   prob,
   x                      # data to mode seek on
   ) {
- 
+
+ stop("not working yet")
+
   n <- NROW(x)
-  perm <- sample(0:(n-1),size=n) 
   p <- length(x) / n
 
-  Cprog <- proc.time()
 
   # send our data to the C program
   r.result <- .C("R_lpm3",
@@ -30,8 +30,6 @@ lpm3 <- function(
     as.integer( p )            
   )
   
-  print("C running time")
-  print(proc.time() - Cprog) 
 
   return(r.result)
   
@@ -39,8 +37,17 @@ lpm3 <- function(
 
 
 
+library(BalancedSampling) 
 
-sampled <- lpm3( rep(1000/20000,20000), 1:20000 )
+N <- 100000
+n <- 1000
+x <- cbind( 1:N, 1:N) 
+
+
+Cprog <- proc.time()
+sampled <- lpm2( rep(n/N,N),x  )
+print("lpm2 running time")
+print(proc.time() - Cprog) 
 
 
 
