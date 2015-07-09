@@ -1,6 +1,6 @@
 if ( !( 'loaded' %in% ls() ) )  {
   print('lpm3.so loaded')
-  dyn.load('~/src/lpm3/lpm3.so')
+  dyn.load('~/src/lpm3/kdtree_lpm.so')
   loaded <- T
 }
 
@@ -13,13 +13,14 @@ if ( !( 'loaded' %in% ls() ) )  {
 ############################################################
 lpm3 <- function(
   prob,
-  x                      # data to mode seek on
+  x,                      # data to mode seek on
+  m=40
   ) {
 
- stop("not working yet")
 
   n <- NROW(x)
-  p <- length(x) / n
+  K <- length(x) / n
+  m <- min( m, n)
 
 
   # send our data to the C program
@@ -27,11 +28,14 @@ lpm3 <- function(
     as.double( t(x) ),                 # 1 data we query
     as.double( prob ),                 # 2 probability
     as.integer( n ),              
-    as.integer( p )            
+    as.integer( K ),                   
+    as.integer( m )                    # max leaves per node
   )
-  
+ 
+  #print( r.result[[2]] ) 
+  #return( r.result[[2]] ) 
 
-  return(r.result)
+  return( (1:n)[ r.result[[2]] > .5 ] )
   
 }
 
@@ -41,14 +45,18 @@ library(BalancedSampling)
 
 N <- 100000
 n <- 1000
-x <- cbind( 1:N, 1:N) 
+x <- cbind( runif(N), runif(N)) 
 
 
 Cprog <- proc.time()
-sampled <- lpm2( rep(n/N,N),x  )
+sampled2 <- lpm2( rep(n/N,N),x  )
 print("lpm2 running time")
 print(proc.time() - Cprog) 
 
+Cprog <- proc.time()
+sampled3 <- lpm3( rep(n/N,N),x  )
+print("lpm3 running time")
+print(proc.time() - Cprog) 
 
-
+print(length(sampled3))
 
