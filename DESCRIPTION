@@ -1,0 +1,9 @@
+Package: lpm3 
+Type: Package
+Title: A Fast K-D Tree Implementation of the Local Pivotal Method 
+Version: 0.5
+Date: 2015-07-10
+Author: Jonathan Lisic <jonathan.lisic@nass.usda.gov> 
+Maintainer: Jonathan Lisic <jonathan.lisic@nass.usda.gov> 
+Description: This program performs the local pivotal method for balanced sampling using k-d trees obtaining O( log(n) n ) computatinal complexity. 
+License: BSD 2-clause License 

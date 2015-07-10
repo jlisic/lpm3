@@ -5,6 +5,16 @@
 
 #include "kdtree_lpm.h"
 
+
+/* printf fixing */
+#ifdef CLI 
+ #define PRINTF printf
+#else 
+ #include "R.h"
+ #include "Rmath.h"
+ #define PRINTF Rprintf
+#endif
+
 /* function to create a new Tree */
 rootNodePtr createTree( size_t K, size_t leafSize, size_t n, double * data ) {
   
@@ -68,9 +78,9 @@ void buildIndex( rootNodePtr r, nodePtr c, nodePtr p ) {
    * move current contents to new children
    */
 
-//printf(" so you have decided to have children\n");
+//PRINTF(" so you have decided to have children\n");
   children = createChildren( r, c, p);
-//printf(" success!, they have left the house off on their own!\n");
+//PRINTF(" success!, they have left the house off on their own!\n");
   c->left  = children[0];
   c->right = children[1];
   free(children);
@@ -223,11 +233,11 @@ nodePtr * createChildren( rootNodePtr r, nodePtr c, nodePtr p) {
 
   /* now let's have some fun with pointer math */
   for( i = 0; i < splitIndex; i++) {
-//    printf("Left: (%p) %d: %d %d %d\n", (void *) c, (int) i,(int) c->index[xPtr[i] - x], (int) (xPtr[i]  - x), (int) c->index[i] );
+//    PRINTF("Left: (%p) %d: %d %d %d\n", (void *) c, (int) i,(int) c->index[xPtr[i] - x], (int) (xPtr[i]  - x), (int) c->index[i] );
     children[0]->index[i] = c->index[xPtr[i] - x];
   }
   for( i = splitIndex; i < c->indexUsed; i++) {
-//    printf("Right: (%p) %d: %d %d %d\n", (void *) c, (int) i,(int) c->index[xPtr[i] - x], (int) (xPtr[i]  - x), (int) c->index[i] );
+//    PRINTF("Right: (%p) %d: %d %d %d\n", (void *) c, (int) i,(int) c->index[xPtr[i] - x], (int) (xPtr[i]  - x), (int) c->index[i] );
     children[1]->index[i -splitIndex] = c->index[ xPtr[i] -x ];
   }
 
@@ -261,24 +271,24 @@ void printTree( rootNodePtr r, nodePtr c ) {
 
   size_t i;
 
-  printf("node: %p\n", (void *) c);
+  PRINTF("node: %p\n", (void *) c);
   if( c->index != NULL) {
-    for( i=0; i < c->indexUsed; i++) printf("%d ", (int) c->index[i]); 
+    for( i=0; i < c->indexUsed; i++) PRINTF("%d ", (int) c->index[i]); 
   } 
-  printf("\n\tleft: %p right %p (split = %f) \n", (void *) c->left, (void*) c->right, c->split );
-  printf("\n  min= ");
-  for( i = 0; i < r->K; i++) printf("%f ",c->min[i] );
-  printf("\n  max= ");
-  for( i = 0; i < r->K; i++) printf("%f ",c->max[i] );
-  printf("\n");
+  PRINTF("\n\tleft: %p right %p (split = %f) \n", (void *) c->left, (void*) c->right, c->split );
+  PRINTF("\n  min= ");
+  for( i = 0; i < r->K; i++) PRINTF("%f ",c->min[i] );
+  PRINTF("\n  max= ");
+  for( i = 0; i < r->K; i++) PRINTF("%f ",c->max[i] );
+  PRINTF("\n");
 
   if( c->left ) {
-    printf("left ");
+    PRINTF("left ");
     printTree( r, c->left);
   }
 
   if( c->right ) {
-    printf("right ");
+    PRINTF("right ");
     printTree( r, c->right);
   }
 
@@ -297,7 +307,7 @@ size_t getClosest( rootNodePtr r, nodePtr c, size_t item, double * dist  ) {
   double * y = &(r->data[item*K]);
   double currentDist;
 
-//printf("  getClosest: c->indexUsed = %d\n", (int) c->indexUsed );
+//PRINTF("  getClosest: c->indexUsed = %d\n", (int) c->indexUsed );
 
   for( i = 0; i < c->indexUsed; i++) {
 
@@ -305,7 +315,7 @@ size_t getClosest( rootNodePtr r, nodePtr c, size_t item, double * dist  ) {
   
     j = c->index[i]; 
 
-//printf("  getClosest: Checking %d against %d\n", (int) j, (int) item);
+//PRINTF("  getClosest: Checking %d against %d\n", (int) j, (int) item);
 
     if( j  >= r->n) continue;  // check if it's a valid index 
     if( j == item ) continue;  // don't match what we are not looking for
@@ -334,7 +344,7 @@ size_t getClosest( rootNodePtr r, nodePtr c, size_t item, double * dist  ) {
 /* bound should be first set to the value of the node you are trying to find a neighbor for */
 void find_nn_notMe( rootNodePtr r, nodePtr c, size_t item, double * dist, size_t * query, double * queryPoint  ) {
 
-//printf("Entering %p\n", c);
+//PRINTF("Entering %p\n", c);
 
   double boundDist = 0;
   size_t i;
@@ -344,7 +354,7 @@ void find_nn_notMe( rootNodePtr r, nodePtr c, size_t item, double * dist, size_t
 
   /* nothing to search for */
   if( item >= r->n ) {
-//printf("nothing to do \n");
+//PRINTF("nothing to do \n");
     return;
   } 
  
@@ -371,7 +381,7 @@ void find_nn_notMe( rootNodePtr r, nodePtr c, size_t item, double * dist, size_t
       }
   }  
     
-//printf(" boundDist = %f ( %f )\n", boundDist , *dist );
+//PRINTF(" boundDist = %f ( %f )\n", boundDist , *dist );
     
  
   /* boundary distance */

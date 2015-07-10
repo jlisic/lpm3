@@ -11,9 +11,11 @@
 
 #ifdef CLI
 #include <time.h>
+#define PRINTF printf
 # else 
 #include "R.h"
 #include "Rmath.h"
+#define PRINTF Rprintf
 #endif
 
 #include "kdtree_lpm.h"
@@ -79,7 +81,7 @@ int main ( int argc, char * argv[]  )  {
   int KInt;
   int mInt;
 
-  printf("argc = %d\n", argc);
+  PRINTF("argc = %d\n", argc);
 
   if( argc == 5) { 
     sscanf(argv[1], "%d", &nInt); 
@@ -90,7 +92,7 @@ int main ( int argc, char * argv[]  )  {
     n          = (size_t) nInt;
     m          = (size_t) mInt;
     K          = (size_t) KInt; 
-    printf(" Parameters n = %d, m = %d, K = %d, pi = %f\n", (int) n, (int) K, (int) m, sampleRate); 
+    PRINTF(" Parameters n = %d, m = %d, K = %d, pi = %f\n", (int) n, (int) K, (int) m, sampleRate); 
   }
 
 
@@ -162,7 +164,7 @@ int main ( int argc, char * argv[]  )  {
   buildIndex( myTree, NULL, NULL); 
 
 #ifdef DDEBUG
-printf(" --------- Print Tree -----------\n" );
+PRINTF(" --------- Print Tree -----------\n" );
 printTree( myTree, myTree->root ); 
 #endif 
 
@@ -178,18 +180,18 @@ printTree( myTree, myTree->root );
     j = reduceIndexMap[sampled]; // j is the original index of the sampled data
 
     if( j >=n  ) {
-      //printf("breaking on iteration %d, for k\n", (int) i);
+      //PRINTF("breaking on iteration %d, for k\n", (int) i);
       break;
     }
 
   
 #ifdef DDEBUG
 
-printf("----------------------- %d  (%d, %d)---------------\n", (int) i, (int) j, (int) sampled); 
+PRINTF("----------------------- %d  (%d, %d)---------------\n", (int) i, (int) j, (int) sampled); 
 
-printf(" %d:\tpoint tree\ttree\tindex\treduce\tpi\n", (int) i); 
+PRINTF(" %d:\tpoint tree\ttree\tindex\treduce\tpi\n", (int) i); 
 for( l = 0; l < n; l ++) 
-printf(" %d:\t%p\t%d\t%d\t%d\t%f\n", 
+PRINTF(" %d:\t%p\t%d\t%d\t%d\t%f\n", 
 (int) l, 
 (void *) myTree->pointerIndex[l],
 (int) *( myTree->pointerIndex[l] ),
@@ -205,12 +207,12 @@ pi[l]
     find_nn_notMe( myTree , myTree->root, j, &dist, &k, &x[j*K]); 
 
 #ifdef DDEBUG
-printf(" neighbor: %d\n", (int) k );
+PRINTF(" neighbor: %d\n", (int) k );
 #endif
 
     /* break if an invalid neighbor is selected */
     if( k >=n  ) {
-      printf("breaking on iteration %d, for k\n", (int) i);
+      PRINTF("breaking on iteration %d, for k\n", (int) i);
     break;
     }
 
@@ -245,7 +247,7 @@ printf(" neighbor: %d\n", (int) k );
     if ( (pi[j] <= 0) | (pi[j] >= 1) ) {
       removeIndexA = j;
 #ifdef DDEBUG
-printf(" sampled: %d\n", (int) sampled);
+PRINTF(" sampled: %d\n", (int) sampled);
 #endif
       removeReduceIndexA = sampled; 
       if ( (pi[k] <= 0) | (pi[k] >= 1) ) {
@@ -256,9 +258,9 @@ printf(" sampled: %d\n", (int) sampled);
     }
  
 #ifdef DDEBUG
-printf("  removeIndexA = %d\t removeReduceIndexA = %d\n", (int) removeIndexA, (int) removeReduceIndexA);
-printf("  removeIndexB = %d\t removeReduceIndexB = %d\n", (int) removeIndexB, (int) removeReduceIndexB);
-printf("  numberIndexToRemove = %d\n", (int) numberIndexToRemove);
+PRINTF("  removeIndexA = %d\t removeReduceIndexA = %d\n", (int) removeIndexA, (int) removeReduceIndexA);
+PRINTF("  removeIndexB = %d\t removeReduceIndexB = %d\n", (int) removeIndexB, (int) removeReduceIndexB);
+PRINTF("  numberIndexToRemove = %d\n", (int) numberIndexToRemove);
 #endif
 
     /*       
@@ -276,7 +278,7 @@ printf("  numberIndexToRemove = %d\n", (int) numberIndexToRemove);
     } 
 
 #ifdef DDEBUG
-printf("  moveA = %d\t moveB = %d\n", (int) moveA, (int) moveB );
+PRINTF("  moveA = %d\t moveB = %d\n", (int) moveA, (int) moveB );
 #endif
 
     /*
@@ -291,7 +293,7 @@ printf("  moveA = %d\t moveB = %d\n", (int) moveA, (int) moveB );
       if( removeIndexA == moveA ) 
       {
 #ifdef DDEBUG
-printf("3a\n");
+PRINTF("3a\n");
 #endif
         reduceIndexMap[ indexMap[moveA] ] = n;
         indexMap[moveA] = n;
@@ -301,7 +303,7 @@ printf("3a\n");
       else if( removeIndexB == moveA ) 
       {
 #ifdef DDEBUG
-printf("3b\n");
+PRINTF("3b\n");
 #endif
         reduceIndexMap[ indexMap[moveA] ] = n;
         indexMap[moveA] = n;
@@ -312,7 +314,7 @@ printf("3b\n");
       if( removeIndexA == moveB ) 
       {
 #ifdef DDEBUG
-printf("3c\n");
+PRINTF("3c\n");
 #endif
         reduceIndexMap[ indexMap[moveB] ] = n;
         indexMap[moveB] = n;
@@ -322,7 +324,7 @@ printf("3c\n");
       else if( removeIndexB == moveB ) 
       {
 #ifdef DDEBUG
-printf("3d\n");
+PRINTF("3d\n");
 #endif
         reduceIndexMap[ indexMap[moveB] ] = n;
         indexMap[moveB] = n;
@@ -335,7 +337,7 @@ printf("3d\n");
 
       if( removeIndexA == moveA ) {
 #ifdef DDEBUG
-printf("3e\n");
+PRINTF("3e\n");
 #endif
         reduceIndexMap[ indexMap[moveA] ] = n;
         indexMap[moveA] = n;
@@ -345,7 +347,7 @@ printf("3e\n");
       else if( removeIndexB == moveA ) 
       {
 #ifdef DDEBUG
-printf("3f\n");
+PRINTF("3f\n");
 #endif
         reduceIndexMap[ indexMap[moveA] ] = n;
         indexMap[moveA] = n;
@@ -367,7 +369,7 @@ printf("3f\n");
         // check if removeIndexA has been set to n
         if( indexMap[removeIndexA] != n ) {
 #ifdef DDEBUG
-printf("4a\n");
+PRINTF("4a\n");
 #endif
           // set reduced index
           reduceIndexMap[ removeReduceIndexA ] = reduceIndexMap[ indexMap[ moveA ] ];
@@ -376,7 +378,7 @@ printf("4a\n");
           indexMap[ removeIndexA ] =n;
         } else {
 #ifdef DDEBUG
-printf("4b\n");
+PRINTF("4b\n");
 #endif
           reduceIndexMap[ removeReduceIndexB ] = reduceIndexMap[ indexMap[ moveA ] ];
           indexMap[ moveA ] = removeReduceIndexB;
@@ -389,14 +391,14 @@ printf("4b\n");
         // check if removeIndexA has been set to n
         if( indexMap[removeIndexA] != n ) {
 #ifdef DDEBUG
-printf("4c\n");
+PRINTF("4c\n");
 #endif
           reduceIndexMap[ removeReduceIndexA ] = reduceIndexMap[ indexMap[ moveB ] ];
           indexMap[ moveB ] = removeReduceIndexA;
           indexMap[ removeIndexA ] =n;
         } else {
 #ifdef DDEBUG
-printf("4d\n");
+PRINTF("4d\n");
 #endif
           reduceIndexMap[ removeReduceIndexB ] = reduceIndexMap[ indexMap[ moveB ] ];
           indexMap[ moveB ] = removeReduceIndexB;
@@ -417,10 +419,10 @@ printf("4d\n");
   /* finish */ 
 
 #ifdef CLI 
-//printf("----------------------- %d  (%d, %d)---------------\n", (int) i, (int) j, (int) sampled); 
-printf(" %d:\tpoint tree\ttree\tindex\treduce\tpi\n", (int) i); 
+//PRINTF("----------------------- %d  (%d, %d)---------------\n", (int) i, (int) j, (int) sampled); 
+PRINTF(" %d:\tpoint tree\ttree\tindex\treduce\tpi\n", (int) i); 
 for( l = 0; l < n; l ++) 
-printf(" %d:\t%p\t%d\t%d\t%d\t%f\n", 
+PRINTF(" %d:\t%p\t%d\t%d\t%d\t%f\n", 
 (int) l, 
 (void *) myTree->pointerIndex[l],
 (int) *( myTree->pointerIndex[l] ),
@@ -431,7 +433,7 @@ pi[l]
 
 
 #ifdef DDEBUG 
-printf(" --------- Print Tree -----------\n" );
+PRINTF(" --------- Print Tree -----------\n" );
 printTree( myTree, myTree->root ); 
 #endif
 
