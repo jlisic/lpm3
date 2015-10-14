@@ -47,6 +47,9 @@ typedef struct rootNode rootNode;
 typedef struct rootNode * rootNodePtr;
 
 
+/* function to print a tree */
+void printTree( rootNodePtr r, nodePtr c ); 
+
 
 /* function to create a new Tree */
 rootNodePtr createTree( size_t K, size_t leafSize, size_t n, double * data );

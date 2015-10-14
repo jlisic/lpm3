@@ -49,14 +49,29 @@ void deleteTree( rootNodePtr r ) {
 /* add an element to the tree */
 void buildIndex( rootNodePtr r, nodePtr c, nodePtr p ) {
  
-  size_t i; 
+  size_t i,k; 
+  size_t K, n, dim;
+  double * data;
 
   /* for the root node */
   if( c == NULL) {
     c = createNode( r, NULL);
     r->root = c;
     c->indexUsed = r->n;
-    for(i = 0; i < r->n; i++) c->index[i] = i; 
+
+    K = r->K;
+    data = r->data;
+    dim =  c->dim; 
+    n = r->n;
+
+    // setup the index, and also ensure that we have finite bounds
+    for(i = 0; i < n; i++) {
+      c->index[i] = i;
+      for( k = 0; k < K; k++) {
+        if( data[ i * K + k ] < c->min[k] ) c->min[k] = data[i * K + k];  
+        if( data[ i * K + k ] > c->max[k] ) c->max[k] = data[i * K + k];  
+      }
+    }
   }
   nodePtr * children = NULL; // place holder
 
@@ -139,8 +154,8 @@ nodePtr createNode( rootNodePtr r, nodePtr p ) {
   c->min = calloc( r->K, sizeof(double));
   c->max = calloc( r->K, sizeof(double));
   for( i = 0; i < r->K; i++) {
-    (c->max)[i] = INFINITY;
-    (c->min)[i] = -INFINITY;
+    (c->max)[i] = -INFINITY;
+    (c->min)[i] = INFINITY;
   }
   return(c);
 }
@@ -210,7 +225,8 @@ nodePtr * createChildren( rootNodePtr r, nodePtr c, nodePtr p) {
   // get split
   splitIndex = c->indexUsed/2;
   if( c->indexUsed % 2 ) {  // is not even
-    splitIndex = c->indexUsed/2;
+    //splitIndex = c->indexUsed/2;
+    c->split = *xPtr[splitIndex];
   } else {
     c->split = ( *xPtr[ splitIndex ] + *xPtr[ splitIndex - 1 ] )/2.0;
   }
@@ -315,18 +331,30 @@ size_t getClosest( rootNodePtr r, nodePtr c, size_t item, double * dist  ) {
   
     j = c->index[i]; 
 
-//PRINTF("  getClosest: Checking %d against %d\n", (int) j, (int) item);
+//PRINTF("  getClosest: Checking %d against %d", (int) j, (int) item);
 
-    if( j  >= r->n) continue;  // check if it's a valid index 
-    if( j == item ) continue;  // don't match what we are not looking for
+    // check if it's a valid index 
+    if( j  >= r->n) {
+//PRINTF(" Not Valid\n");
+      continue;  
+    }
+    // don't match what we are not looking for
+    if( j == item ) {
+//PRINTF(" Equal to Item\n");
+      continue; 
+    } 
 
     for( d = 0; d < K; d++) currentDist += (x[j * K + d] - y[d]) * (x[j*K + d] - y[d]);  //calculate distance
     
+//PRINTF(" dist = %f", currentDist);
 
     if( currentDist < *dist ) {
       *dist = currentDist; 
       closestIndex = i;
+//PRINTF(" newMin! ");
     }
+//PRINTF("\n");
+
 
   }
 
@@ -345,10 +373,11 @@ size_t getClosest( rootNodePtr r, nodePtr c, size_t item, double * dist  ) {
 void find_nn_notMe( rootNodePtr r, nodePtr c, size_t item, double * dist, size_t * query, double * queryPoint  ) {
 
 //PRINTF("Entering %p\n", c);
-
-  double boundDist = 0;
+  
   size_t i;
-  double distMin, distMax;
+  double distMinLeft, distMaxLeft;
+  double distMinRight, distMaxRight;
+  double boundDistLeft=INFINITY, boundDistRight=INFINITY;
   size_t queryTmp = r->n;
 
 
@@ -370,27 +399,55 @@ void find_nn_notMe( rootNodePtr r, nodePtr c, size_t item, double * dist, size_t
   /* get bound distance */
 
   for(i = 0; i < r->K; i++){
-      
-      distMin = (queryPoint[i] - c->min[i])* (queryPoint[i] - c->min[i]);
-      distMax = (queryPoint[i] - c->max[i])* (queryPoint[i] - c->max[i]);
 
-      if( distMin < distMax ) {
-        boundDist += distMin;
+
+    if( c->left != NULL ) {
+      distMinLeft = queryPoint[i] - (c->left)->min[i];
+      distMinLeft *= distMinLeft;
+      
+      distMaxLeft = queryPoint[i] - (c->left)->max[i];
+      distMaxLeft *= distMaxLeft;
+
+//      Rprintf("L %d queryPoint = %f, min %f, max %f, distMin %f, distMax %f\n", 
+//          (int) i, queryPoint[i], (c->left)->min[i], (c->left)->max[i], distMinLeft, distMaxLeft); 
+
+      if( distMinLeft < distMaxLeft ) {
+        if( boundDistLeft > distMinLeft ) boundDistLeft = distMinLeft;
       } else {
-        boundDist += distMax;
+        if( boundDistLeft > distMaxLeft ) boundDistLeft = distMaxLeft;
       }
+    }
+
+    if( c->right != NULL ) {
+      distMinRight = queryPoint[i] - (c->right)->min[i];
+      distMinRight *= distMinRight;
+      
+      distMaxRight = queryPoint[i] - (c->right)->max[i];
+      distMaxRight *= distMaxRight;
+      
+//      Rprintf("R %d queryPoint = %f, min %f, max %f, distMin %f, distMax %f\n", 
+//          (int) i, queryPoint[i], (c->right)->min[i], (c->right)->max[i], distMinRight, distMaxRight); 
+
+      if( distMinRight < distMaxRight ) {
+        if( boundDistRight > distMinRight ) boundDistRight = distMinRight;
+      } else {
+        if( boundDistRight > distMaxRight ) boundDistRight = distMaxRight;
+      }
+    }
+
+
   }  
     
-//PRINTF(" boundDist = %f ( %f )\n", boundDist , *dist );
+//PRINTF(" boundDist = L %f R %f ( %f )\n", boundDistLeft, boundDistRight , *dist );
     
  
   /* boundary distance */
   if( r->data[item * r->K + c->dim] <= c->split ) {
-    if( boundDist <= *dist ) find_nn_notMe( r, c->left, item, dist, query, queryPoint );  
-    if( boundDist <= *dist ) find_nn_notMe( r, c->right, item, dist, query, queryPoint );   
+    if( boundDistLeft <= *dist ) find_nn_notMe( r, c->left, item, dist, query, queryPoint );  
+    if( boundDistRight <= *dist ) find_nn_notMe( r, c->right, item, dist, query, queryPoint );   
   } else {
-    if( boundDist <= *dist ) find_nn_notMe( r, c->right, item, dist, query, queryPoint );   
-    if( boundDist <= *dist ) find_nn_notMe( r, c->left, item, dist, query, queryPoint );  
+    if( boundDistRight <= *dist ) find_nn_notMe( r, c->right, item, dist, query, queryPoint );   
+    if( boundDistLeft <= *dist ) find_nn_notMe( r, c->left, item, dist, query, queryPoint );  
   }
 
 
