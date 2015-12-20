@@ -78,8 +78,11 @@ nodePtr * createChildren( rootNodePtr r, nodePtr c, nodePtr p);
 /* function to get the closest neighbor */
 size_t getClosest( rootNodePtr r, nodePtr c, size_t item, double * dist  ); 
 
+/* function to get the closest neighbor, with tie handling */
+size_t getClosestTie( rootNodePtr r, nodePtr c, size_t item, double * dist, double * tieBreak  ); 
+
 /* funciton to find neighbors */
-void find_nn_notMe( rootNodePtr r, nodePtr c, size_t item, double * dist, size_t * query, double * queryPoint  ); 
+void find_nn_notMe( rootNodePtr r, nodePtr c, size_t item, double * dist, size_t * query, double * queryPoint, double * tieBreak  ); 
 
 #endif
 

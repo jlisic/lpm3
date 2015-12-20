@@ -3,21 +3,20 @@ library(BalancedSampling)
 
 #set.seed(100)
 
-N <- 100000
-n <- 100 
+N <- 5
+n <- 3 
 x <- cbind( runif(N), runif(N)) 
-
-
+#x <- rbind( x, cbind( rep(1,10), rep(1,10) ))
 
 Cprog <- proc.time()
 set.seed(100)
-sampled2 <- lpm2( rep(n/N,N),x  )
+sampled2 <- lpm2( rep((n+.9)/NROW(x),NROW(x)),x  )
 print("lpm2 running time")
 print(proc.time() - Cprog) 
 
 Cprog <- proc.time()
 set.seed(100)
-sampled3 <- lpm3( rep(n/N,N),x  )
+sampled3 <- lpm3( rep((n+.9)/NROW(x),NROW(x)),x  )
 print("lpm3 running time")
 print(proc.time() - Cprog) 
 

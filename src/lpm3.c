@@ -86,6 +86,7 @@ void R_lpm3(
   size_t m = (size_t) * mPtr;
   size_t K = (size_t) * KPtr;
   size_t i,k;
+  double tieBreak; /* used to break ties */
 
   GetRNGstate();
 
@@ -152,7 +153,8 @@ void R_lpm3(
     // find neighbor
     dist = INFINITY;
     k = n;
-    find_nn_notMe( myTree , myTree->root, j, &dist, &k, &x[j*K]); 
+    tieBreak = runif(0.0,1.0);
+    find_nn_notMe( myTree , myTree->root, j, &dist, &k, &x[j*K], &tieBreak); 
   
     /* break if an invalid neighbor is selected */
     if( k >=n  ) {

@@ -183,6 +183,7 @@ void deleteNode( rootNodePtr r, nodePtr c ) {
   }
 
   free(c);
+  c = NULL;
   return;
 }
 
@@ -367,10 +368,67 @@ size_t getClosest( rootNodePtr r, nodePtr c, size_t item, double * dist  ) {
 
 
 
+/* function to find the minimal Euclidian distance */
+size_t getClosestTie( rootNodePtr r, nodePtr c, size_t item, double * dist, double * tieBreak  ) {
+
+  size_t i,j,d;
+  size_t closestIndex = r->n;
+
+  size_t K = r->K;
+  double * x = r->data;
+  double * y = &(r->data[item*K]);
+  double currentDist;
+  double newTieBreak;
+
+//PRINTF("  getClosest: c->indexUsed = %d\n", (int) c->indexUsed );
+
+  for( i = 0; i < c->indexUsed; i++) {
+
+    currentDist = 0;
+  
+    j = c->index[i]; 
+
+//PRINTF("  getClosest: Checking %d against %d", (int) j, (int) item);
+
+    // check if it's a valid index 
+    if( j  >= r->n) {
+//PRINTF(" Not Valid\n");
+      continue;  
+    }
+    // don't match what we are not looking for
+    if( j == item ) {
+//PRINTF(" Equal to Item\n");
+      continue; 
+    } 
+
+    for( d = 0; d < K; d++) currentDist += (x[j * K + d] - y[d]) * (x[j*K + d] - y[d]);  //calculate distance
+    
+//PRINTF(" dist = %f", currentDist);
+
+    if( currentDist < *dist ) {
+      *dist = currentDist; 
+      closestIndex = i;
+    } else if( currentDist == *dist ) {
+      newTieBreak = runif(0.0,1.0);
+      if( newTieBreak > *tieBreak) *tieBreak = newTieBreak;
+      closestIndex = i;
+    }
+
+
+  }
+
+  if( closestIndex < r->n ) {
+    return( c->index[closestIndex] );
+  }
+
+  return( r->n );
+}
+
+
 
 /* find the nearest neighbor that is not a specific index */
 /* bound should be first set to the value of the node you are trying to find a neighbor for */
-void find_nn_notMe( rootNodePtr r, nodePtr c, size_t item, double * dist, size_t * query, double * queryPoint  ) {
+void find_nn_notMe( rootNodePtr r, nodePtr c, size_t item, double * dist, size_t * query, double * queryPoint, double * tieBreak ) {
 
 //PRINTF("Entering %p\n", c);
   
@@ -389,7 +447,8 @@ void find_nn_notMe( rootNodePtr r, nodePtr c, size_t item, double * dist, size_t
  
   /* is there anything here ? */ 
   if( c->index != NULL ) {
-    queryTmp = getClosest( r, c, item, dist); 
+    //queryTmp = getClosest( r, c, item, dist); 
+    queryTmp = getClosestTie( r, c, item, dist, tieBreak); 
     if( queryTmp < r->n) *query = queryTmp;
 
     return;
@@ -443,11 +502,11 @@ void find_nn_notMe( rootNodePtr r, nodePtr c, size_t item, double * dist, size_t
  
   /* boundary distance */
   if( r->data[item * r->K + c->dim] <= c->split ) {
-    if( boundDistLeft <= *dist ) find_nn_notMe( r, c->left, item, dist, query, queryPoint );  
-    if( boundDistRight <= *dist ) find_nn_notMe( r, c->right, item, dist, query, queryPoint );   
+    if( boundDistLeft <= *dist ) find_nn_notMe( r, c->left, item, dist, query, queryPoint, tieBreak );  
+    if( boundDistRight <= *dist ) find_nn_notMe( r, c->right, item, dist, query, queryPoint, tieBreak );   
   } else {
-    if( boundDistRight <= *dist ) find_nn_notMe( r, c->right, item, dist, query, queryPoint );   
-    if( boundDistLeft <= *dist ) find_nn_notMe( r, c->left, item, dist, query, queryPoint );  
+    if( boundDistRight <= *dist ) find_nn_notMe( r, c->right, item, dist, query, queryPoint, tieBreak );   
+    if( boundDistLeft <= *dist ) find_nn_notMe( r, c->left, item, dist, query, queryPoint, tieBreak );  
   }
 
 

@@ -21,9 +21,6 @@ lpm3 <- function(
     as.integer( m )                    # max leaves per node
   )
  
-  #print( r.result[[2]] ) 
-  #return( r.result[[2]] ) 
-
   return( (1:n)[ r.result[[2]] > .5 ] )
   
 }
