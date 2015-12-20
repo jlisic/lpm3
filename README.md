@@ -3,10 +3,6 @@ This is a "faster" implementation of the Local Pivotal Method for balanced sampl
 
 Todo:  
 
-  Handle ties in a safe manner (current breakage due to median) 
-  Handle searching for ties in a non-deterministic manner
-  Finish R interface
-
   Current timings relative to BalancedSampling's lpm2 procedure on an i5-4258U CPU @ 2.40GHz running R 3.2.1 on OS X 10.10.4:
 
   N = 100,000

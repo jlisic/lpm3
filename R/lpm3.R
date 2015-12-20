@@ -1,5 +1,4 @@
 
-# function for local
 lpm3 <- function(
   prob,
   x,                      # data to mode seek on

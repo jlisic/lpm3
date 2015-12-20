@@ -1,6 +1,6 @@
 /* Copyright (c) 2015  Jonathan Lisic 
  * Last edit: 15/07/08 - 11:45:28
- * License: BSD 3-Clause
+ * License: GPL (>=2) 
  */  
 
 
